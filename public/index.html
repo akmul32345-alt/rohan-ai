@@ -1,1 +1,76 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rohan AI</title>
+<style>
+body{margin:0;font-family:Arial,sans-serif;background:#eef3fb;color:#172033}
+header{background:#174ea6;color:white;text-align:center;padding:16px}
+main{max-width:650px;margin:16px auto;padding:12px}
+#messages{height:55vh;min-height:250px;overflow:auto;background:white;border-radius:12px;padding:12px}
+.msg{padding:12px;margin:8px 0;border-radius:10px;white-space:pre-wrap;overflow-wrap:anywhere}
+.user{background:#dceaff}
+.ai{background:#e7f5e9}
+form{display:flex;gap:8px;margin-top:12px}
+input{flex:1;min-width:0;padding:12px;font-size:16px;border:1px solid #aaa;border-radius:10px}
+button{background:#174ea6;color:white;border:0;border-radius:10px;padding:12px}
+</style>
+</head>
+<body>
+<header>
+<h1>Rohan AI</h1>
+<p>বাংলা ও ইংরেজি AI সহকারী</p>
+</header>
+<main>
+<div id="messages">
+<div class="msg ai">হ্যালো! আমি Rohan AI। আমাকে প্রশ্ন করো।</div>
+</div>
+<p id="status"></p>
+<form id="form">
+<input id="question" placeholder="প্রশ্ন লেখো..." required>
+<button id="send">পাঠাও</button>
+</form>
+</main>
+<script>
+const form=document.getElementById("form");
+const input=document.getElementById("question");
+const messages=document.getElementById("messages");
+const status=document.getElementById("status");
+const send=document.getElementById("send");
 
+function addMessage(text,who){
+const div=document.createElement("div");
+div.className="msg "+who;
+div.textContent=text;
+messages.appendChild(div);
+messages.scrollTop=messages.scrollHeight;
+}
+
+form.addEventListener("submit",async event=>{
+event.preventDefault();
+const message=input.value.trim();
+if(!message)return;
+addMessage(message,"user");
+input.value="";
+send.disabled=true;
+status.textContent="উত্তর তৈরি হচ্ছে...";
+try{
+const response=await fetch("/api/chat",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({message})
+});
+const data=await response.json();
+if(!response.ok)throw new Error(data.error||"সমস্যা হয়েছে");
+addMessage(data.answer,"ai");
+}catch(error){
+addMessage(error.message||"সংযোগ করা যায়নি।","ai");
+}finally{
+send.disabled=false;
+status.textContent="";
+}
+});
+</script>
+</body>
+</html>
